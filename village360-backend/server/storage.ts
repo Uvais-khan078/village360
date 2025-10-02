@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 import {
   users,
   villages,
@@ -18,8 +18,9 @@ import {
   type InsertAmenity,
   type VillageWithAmenities,
   type DashboardStats,
-} from "../shared/schema";
-import { db } from "./db";
+} from "../shared/schema.js";
+// ...existing code...
+import { db } from "./db.js";
 import { eq, desc, and, count, sql } from "drizzle-orm";
 
 export interface IStorage {
@@ -90,7 +91,18 @@ export class DatabaseStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = crypto.randomUUID();
-    const userData = { ...insertUser, id };
+    // Ensure all required fields are present
+    const allowedRoles = ["admin", "district_officer", "block_officer", "public_viewer"] as const;
+    const role = allowedRoles.includes(insertUser.role as any) ? insertUser.role : "public_viewer";
+    const userData = {
+      id,
+      username: insertUser.username!,
+      email: insertUser.email!,
+      password: insertUser.password!,
+      role: role as "admin" | "district_officer" | "block_officer" | "public_viewer",
+      district: insertUser.district ?? "",
+      block: insertUser.block ?? "",
+    };
     await db.insert(users).values(userData);
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
@@ -128,16 +140,33 @@ export class DatabaseStorage implements IStorage {
 
   async createVillage(village: InsertVillage): Promise<Village> {
     const id = crypto.randomUUID();
-    const villageData = { ...village, id };
+    // Ensure all required fields are present and correct types
+    const villageData = {
+      id,
+      name: village.name!,
+      district: village.district!,
+      block: village.block!,
+      latitude: typeof village.latitude === "string" ? village.latitude : String(village.latitude),
+      longitude: typeof village.longitude === "string" ? village.longitude : String(village.longitude),
+      population: typeof village.population === "number" ? village.population : Number(village.population ?? 0),
+    };
     await db.insert(villages).values(villageData);
     const [newVillage] = await db.select().from(villages).where(eq(villages.id, id));
     return newVillage;
   }
 
   async updateVillage(id: string, village: Partial<InsertVillage>): Promise<Village | undefined> {
-    await db.update(villages).set(village).where(eq(villages.id, id));
-    const [updatedVillage] = await db.select().from(villages).where(eq(villages.id, id));
-    return updatedVillage || undefined;
+  // Only update fields that are present and cast types
+  const updateData: any = {};
+  if (village.name) updateData.name = village.name;
+  if (village.district) updateData.district = village.district;
+  if (village.block) updateData.block = village.block;
+  if (village.latitude) updateData.latitude = typeof village.latitude === "string" ? village.latitude : String(village.latitude);
+  if (village.longitude) updateData.longitude = typeof village.longitude === "string" ? village.longitude : String(village.longitude);
+  if (typeof village.population !== "undefined") updateData.population = village.population;
+  await db.update(villages).set(updateData).where(eq(villages.id, id));
+  const [updatedVillage] = await db.select().from(villages).where(eq(villages.id, id));
+  return updatedVillage || undefined;
   }
 
   async getProjects(): Promise<ProjectWithDetails[]> {
@@ -250,16 +279,47 @@ export class DatabaseStorage implements IStorage {
 
   async createProject(project: InsertProject): Promise<Project> {
     const id = crypto.randomUUID();
-    const projectData = { ...project, id };
+    // Ensure all required fields are present and correct types
+    const allowedStatus = ["planning", "ongoing", "completed", "delayed", "cancelled"] as const;
+    const status = allowedStatus.includes(project.status as any) ? project.status : "planning";
+    const normalizeDate = (d: any) => {
+      if (!d) return null;
+      if (d instanceof Date) return d;
+      if (typeof d === "string" || typeof d === "number") return new Date(d);
+      return null;
+    };
+    const projectData = {
+      id,
+      villageId: project.villageId!,
+      title: project.title!,
+      description: project.description!,
+      status: status as "planning" | "ongoing" | "completed" | "delayed" | "cancelled",
+      startDate: normalizeDate(project.startDate),
+      endDate: normalizeDate(project.endDate),
+      budget: typeof project.budget === "number" ? String(project.budget) : String(Number(project.budget ?? 0)),
+      progress: typeof project.progress === "number" ? project.progress : Number(project.progress ?? 0),
+      createdBy: project.createdBy!,
+    };
     await db.insert(projects).values(projectData);
     const [newProject] = await db.select().from(projects).where(eq(projects.id, id));
     return newProject;
   }
 
   async updateProject(id: string, project: Partial<InsertProject>): Promise<Project | undefined> {
-    await db.update(projects).set({ ...project, updatedAt: new Date() }).where(eq(projects.id, id));
-    const [updatedProject] = await db.select().from(projects).where(eq(projects.id, id));
-    return updatedProject || undefined;
+  // Only update fields that are present and cast types
+  const updateData: any = { updatedAt: new Date() };
+  if (project.villageId) updateData.villageId = project.villageId;
+  if (project.title) updateData.title = project.title;
+  if (project.description) updateData.description = project.description;
+  if (project.status) updateData.status = project.status;
+  if (project.startDate) updateData.startDate = project.startDate;
+  if (project.endDate) updateData.endDate = project.endDate;
+  if (typeof project.budget !== "undefined") updateData.budget = typeof project.budget === "number" ? project.budget : Number(project.budget);
+  if (typeof project.progress !== "undefined") updateData.progress = typeof project.progress === "number" ? project.progress : Number(project.progress);
+  if (project.createdBy) updateData.createdBy = project.createdBy;
+  await db.update(projects).set(updateData).where(eq(projects.id, id));
+  const [updatedProject] = await db.select().from(projects).where(eq(projects.id, id));
+  return updatedProject || undefined;
   }
 
   async deleteProject(id: string): Promise<boolean> {
@@ -281,7 +341,18 @@ export class DatabaseStorage implements IStorage {
 
   async createReport(report: InsertReport): Promise<Report> {
     const id = crypto.randomUUID();
-    const reportData = { ...report, id };
+    // Ensure all required fields are present
+    const allowedTypes = ["progress", "completion", "gap_analysis", "monthly"] as const;
+    const reportType = allowedTypes.includes(report.reportType as any) ? report.reportType : "progress";
+    const reportData = {
+      id,
+      title: report.title!,
+      createdBy: report.createdBy!,
+      reportType: reportType as "progress" | "completion" | "gap_analysis" | "monthly",
+      projectId: report.projectId ?? null,
+      content: report.content ?? "",
+      fileUrl: report.fileUrl ?? "",
+    };
     await db.insert(reports).values(reportData);
     const [newReport] = await db.select().from(reports).where(eq(reports.id, id));
     return newReport;
@@ -295,10 +366,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateAmenity(amenity: InsertAmenity): Promise<Amenity> {
-    await db.insert(amenities).values(amenity).onDuplicateKeyUpdate({
+    // Ensure all required fields are present and correct types
+    const amenityData = {
+      villageId: amenity.villageId!,
+      amenityType: amenity.amenityType!,
+      available: typeof amenity.available === "number" ? amenity.available : Number(amenity.available ?? 0),
+      required: typeof amenity.required === "number" ? amenity.required : Number(amenity.required ?? 0),
+    };
+    await db.insert(amenities).values(amenityData).onDuplicateKeyUpdate({
       set: {
-        available: amenity.available,
-        required: amenity.required,
+        available: amenityData.available,
+        required: amenityData.required,
         updatedAt: new Date(),
       },
     });

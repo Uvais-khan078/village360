@@ -1,10 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
+import * as jwt from "jsonwebtoken";
+import * as bcrypt from "bcryptjs";
 import { sql } from "drizzle-orm";
-import { db } from "./db";
-import { storage } from "./storage";
+import { db } from "./db.js";
+import { storage } from "./storage.js";
 import {
   loginSchema,
   registerSchema,
@@ -12,7 +12,7 @@ import {
   insertVillageSchema,
   insertReportSchema,
   insertAmenitySchema
-} from "../shared/schema";
+} from "../shared/schema.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 

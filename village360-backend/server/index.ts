@@ -1,7 +1,8 @@
-import express, { type Request, Response, NextFunction } from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import path from "path";
+import * as express from "express";
+import { Request, Response, NextFunction } from "express";
+import * as cors from "cors";
+const dotenv = require("dotenv");
+import * as path from "path";
 import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes.js";
 
