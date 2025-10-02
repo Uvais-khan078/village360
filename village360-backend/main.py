@@ -13,7 +13,10 @@ from routes.admin import router as admin_router
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Only allow frontend origin
+    allow_origins=[
+        "http://localhost:5173",
+        "https://village360.vercel.app"
+    ],  # Allow local and deployed frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
