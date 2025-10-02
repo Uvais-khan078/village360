@@ -1,4 +1,4 @@
-{
+ {
   "name": "village360-backend",
   "version": "1.0.0",
   "description": "",
@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "tsx --watch server/index.ts",
     "build": "npx tsc",
+    "postbuild": "npx drizzle-kit push",
     "start": "node dist/server/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
