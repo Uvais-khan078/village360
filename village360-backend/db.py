@@ -1,4 +1,7 @@
+
 import os
+import pymysql
+pymysql.install_as_MySQLdb()
 from dotenv import load_dotenv
 load_dotenv()
 from sqlalchemy import create_engine
