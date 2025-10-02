@@ -22,17 +22,15 @@ app.get("/api/health", (_req: Request, res: Response) => {
   res.json({ status: "ok" });
 });
 
-registerRoutes(app).then(() => {
-  // Error handling middleware
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+await registerRoutes(app);
 
-    res.status(status).json({ message });
-  });
+// Error handling middleware
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  const status = err.status || err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
 
-  const port = parseInt(process.env.PORT || "3000", 10);
-  app.listen(port, () => {
-    console.log(`Backend running on port ${port}`);
-  });
+  res.status(status).json({ message });
 });
+
+// Export the app for Vercel serverless deployment
+export default app;
