@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+mysqlclient
+bcrypt
+python-jose
+alembic
+aiomysql
+python-dotenv
