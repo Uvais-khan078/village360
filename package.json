@@ -2,4 +2,10 @@
   "dependencies": {
     "drizzle-orm": "^0.44.6"
   }
+  ,"scripts": {
+  "dev": "ts-node-dev --respawn --transpile-only server/index.ts",
+  "build": "tsc",
+  "start": "node dist/server/index.js"
+}
+
 }

@@ -1,6 +1,5 @@
-import * as express from "express";
-import { Request, Response, NextFunction } from "express";
-import * as cors from "cors";
+import express, { Request, Response, NextFunction } from "express";
+import cors from "cors";
 const dotenv = require("dotenv");
 import * as path from "path";
 import { fileURLToPath } from "url";
