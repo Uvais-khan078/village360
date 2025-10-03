@@ -81,10 +81,10 @@ export function Sidebar() {
       <div className="p-6 border-b border-border">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">AG</span>
+            <span className="text-primary-foreground font-bold text-lg">V360</span>
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-foreground">PM-AJAY</h1>
+            <h1 className="text-lg font-semibold text-foreground">Village 360</h1>
             <p className="text-sm text-muted-foreground">Monitoring System</p>
           </div>
         </div>
