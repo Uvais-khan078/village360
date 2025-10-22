@@ -13,7 +13,8 @@ from routes.admin import router as admin_router
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Only allow frontend origin
+    allow_origins=[],  # We'll use a regex to match allowed origins
+    allow_origin_regex=r"https?://(localhost(:\d+)?|.*\.vercel\.app)$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
